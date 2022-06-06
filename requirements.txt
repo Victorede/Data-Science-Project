@@ -2,7 +2,6 @@
 chardet
 idna
 joblib
-numpy
 pandas
 python-dateutil
 pytz
