@@ -1,14 +1,4 @@
-anyio==2.2.0
-appdirs==1.4.4
-argh==0.26.2
-argon2-cffi==20.1.0
-arrow==0.13.1
-asn1crypto==1.4.0
-astropy==4.3.1
-async-generator==1.10
-atomicwrites==1.4.0
-attrs==21.2.0
-autopep8==1.5.7
+
 Babel==2.9.1
 Backcall==0.2.0
 backports.functools-lru-cache==1.6.4
