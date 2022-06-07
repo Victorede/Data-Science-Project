@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'heartfailure'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_408FC857D9BD474EAAF584293FC1F126 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4C38E856D365417B9223442E2A720CE1 }}
