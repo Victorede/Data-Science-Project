@@ -3,7 +3,7 @@ import pickle
 
 import pandas as pd
 
-app = Flask(__name__, static_url_path='/static')
+app = Flask(__name__)
 model = pickle.load(open('DecisionTreeClassifier_model.pkl', 'rb'))
 
 
