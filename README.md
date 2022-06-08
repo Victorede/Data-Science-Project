@@ -43,7 +43,7 @@ Sex: sex of the patient [M: Male, F: Female],
 
 ChestPainType: chest pain type [TA: Typical Angina, ATA: Atypical Angina, NAP: Non-Anginal Pain, ASY: Asymptomatic],
 
-RestingBP: resting blood pressure [mm Hg],
+RestingBP: resting blood pressure [mm Hg]mean arterial pressure (MAP) ,
 
 Cholesterol: serum cholesterol [mm/dl],
 
