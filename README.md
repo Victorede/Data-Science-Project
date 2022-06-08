@@ -12,7 +12,21 @@ Cardiovascular diseases (CVDs) are the number 1 cause of death globally, taking 
 
 People with cardiovascular disease or who are at high cardiovascular risk (due to the presence of one or more risk factors such as hypertension, diabetes, hyperlipidaemia or already established disease) need early detection and management wherein a machine learning model can be of great help.
 
-Attribute Information
+
+
+Major steps for machine Learning Projects.
+
+Look at the big picture.
+Get the data.
+Discover and visualize the data to gain insights.
+Prepare the data for Machine Learning algorithms.
+Select a model and train it.
+Fine-tune your model.
+Present your solution.
+Launch, monitor, and maintain your system.
+
+
+Data Attribute Information
 
 
 Age: age of the patient [years],
