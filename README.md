@@ -14,19 +14,27 @@ People with cardiovascular disease or who are at high cardiovascular risk (due t
 
 
 
-Major steps for machine Learning Projects.
+**Major steps for machine Learning Projects.**
 
 Look at the big picture.
+
 Get the data.
+
 Discover and visualize the data to gain insights.
+
 Prepare the data for Machine Learning algorithms.
+
 Select a model and train it.
+
 Fine-tune your model.
+
 Present your solution.
+
 Launch, monitor, and maintain your system.
 
 
-Data Attribute Information
+
+**Data Attribute Information**
 
 
 Age: age of the patient [years],
