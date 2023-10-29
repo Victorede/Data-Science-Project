@@ -15,12 +15,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-      - name: Merge Changes
+      - name: Opening pull request
         id: pull
-        uses: tretuna/sync-branches@1.4.0
+        uses: ./
         with:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FROM_BRANCH: "main"
-          TO_BRANCH: "pre_prod"
-          
-          
+          TO_BRANCH: "develop"
