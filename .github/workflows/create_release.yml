@@ -1,54 +1,47 @@
 on:
   push:
     branches:
-      - pre-prod
       - main
+    
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-name: Release Workflow
+name: Create Release
 
 jobs:
-  handleRelease:
-    name: Handle Release Based on Branch
+  build:
+    name: Create Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Handle Pre-Prod Release
-        if: github.ref == 'refs/heads/pre-prod'
+      - name: Get latest release tag
+        id: latesttag
         run: |
-          # Fetch the latest tag
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-
-          # If no tag exists, set initial tag. Else, increment the tag.
-          if [ -z "$LATEST_TAG" ]; then
-            NEW_TAG="v1.0.0"
+          LATEST_TAG=$(curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          if [[ "$LATEST_TAG" == "null" ]]; then
+            echo "NEW_TAG=v1.0.0" >> $GITHUB_ENV
           else
-            # Assuming tag is in the format vX.Y.Z
-            MAJOR_VERSION=$(echo $LATEST_TAG | cut -d. -f1)
-            MINOR_VERSION=$(echo $LATEST_TAG | cut -d. -f2)
-            PATCH_VERSION=$(echo $LATEST_TAG | cut -d. -f3)
-            PATCH_VERSION=$((PATCH_VERSION + 1))
-            NEW_TAG="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}"
+            LATEST_TAG_CLEANED=${LATEST_TAG#v}  # Removing 'v' prefix for parsing
+            echo "LATEST_TAG_CLEANED=$LATEST_TAG_CLEANED" >> $GITHUB_ENV
           fi
-
-          # Create and push the new tag
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
-
-      - name: Handle Main Release
-        if: github.ref == 'refs/heads/main'
+      - name: Increment version (if needed)
+        id: incversion
         run: |
-          # Fetch the latest tag
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-
-          # Check if latest commit in main matches the latest tag
-          LATEST_COMMIT=$(git rev-parse HEAD)
-          TAG_COMMIT=$(git rev-list -n 1 $LATEST_TAG)
-
-          if [ "$LATEST_COMMIT" != "$TAG_COMMIT" ]; then
-            echo "Error: The latest commit in main does not match the latest tag."
-            exit 1
+          if [[ -z "$LATEST_TAG_CLEANED" ]]; then
+            exit 0
           fi
-
-          echo "Main is aligned with the latest release tag."
+          MAJOR_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f1)
+          MINOR_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f2)
+          PATCH_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f3)
+          PATCH_VERSION=$((PATCH_VERSION + 1))
+          NEW_TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: Release ${{ env.NEW_TAG }}
