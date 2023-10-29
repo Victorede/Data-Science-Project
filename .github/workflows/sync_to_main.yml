@@ -22,5 +22,5 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           FROM_BRANCH: "main"
           TO_BRANCH: "pre_prod"
-          PULL_REQUEST_AUTO_MERGE_METHOD: "merge"
+          
           
