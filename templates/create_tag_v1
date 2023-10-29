@@ -1,0 +1,47 @@
+on:
+  push:
+    branches:
+      - main
+    
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get latest release tag
+        id: latesttag
+        run: |
+          LATEST_TAG=$(curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          if [[ "$LATEST_TAG" == "null" ]]; then
+            echo "NEW_TAG=v1.0.0" >> $GITHUB_ENV
+          else
+            LATEST_TAG_CLEANED=${LATEST_TAG#v}  # Removing 'v' prefix for parsing
+            echo "LATEST_TAG_CLEANED=$LATEST_TAG_CLEANED" >> $GITHUB_ENV
+          fi
+      - name: Increment version (if needed)
+        id: incversion
+        run: |
+          if [[ -z "$LATEST_TAG_CLEANED" ]]; then
+            exit 0
+          fi
+          MAJOR_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f1)
+          MINOR_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f2)
+          PATCH_VERSION=$(echo $LATEST_TAG_CLEANED | cut -d. -f3)
+          PATCH_VERSION=$((PATCH_VERSION + 1))
+          NEW_TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: Release ${{ env.NEW_TAG }}
