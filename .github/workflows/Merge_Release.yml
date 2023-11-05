@@ -3,7 +3,7 @@ name: Merge Release Into Main
 on:
   push:
     branches:
-      - 'pre-prod/*'
+      - pre-prod
 
 jobs:
   main:
@@ -21,8 +21,8 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'production' # Specify your production branch here
-          pr_title: "[Automated] Merge ${{ github.ref_name }} into production"
+          destination_branch: 'main' # Specify your production branch here
+          pr_title: "[Automated] Merge ${{ github.ref_name }} into main"
           pr_body: "Automated Pull Request"
           pr_reviewer: "Victorede" # Add more reviewers separated by commas
           pr_assignee: "Victorede" # Add more assignees separated by commas
