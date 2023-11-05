@@ -1,0 +1,37 @@
+name: Merge Release Into Main
+
+on:
+  push:
+    branches:
+      - 'pre-prod/*'
+
+jobs:
+  main:
+    name: Create PR Release to Main
+    runs-on: ubuntu-latest
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # https://github.com/marketplace/actions/github-pull-request-action
+      - name: create pull request
+        id: open-pr
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          destination_branch: 'production' # Specify your production branch here
+          pr_title: "[Automated] Merge ${{ github.ref_name }} into production"
+          pr_body: "Automated Pull Request"
+          pr_reviewer: "Victorede" # Add more reviewers separated by commas
+          pr_assignee: "Victorede" # Add more assignees separated by commas
+
+      # https://github.com/marketplace/actions/enable-pull-request-automerge
+      - name: enable automerge
+        if: steps.open-pr.outputs.pr_number != ''
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
+          merge-method: merge
