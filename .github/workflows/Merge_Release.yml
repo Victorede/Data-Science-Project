@@ -3,7 +3,7 @@ name: Merge Release Into Main
 on:
   push:
     branches:
-      - 'pre-prod/*'
+      - 'pre-prod'
 
 jobs:
   main:
