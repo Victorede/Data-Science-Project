@@ -16,7 +16,7 @@ jobs:
       - name: Check if PR has 'deploy to production' label
         id: label-check
         run: |
-          echo "is_labeled=$(echo ${{ join(github.event.pull_request.labels.*.name, ' ') }} | grep -q 'deploy to production' && echo 'true' || echo 'false')"
+          echo "is_labeled=$(echo ${{ join(github.event.pull_request.labels.*.name, ' ') }} | grep -q 'Deploy to Production' && echo 'true' || echo 'false')"
           echo "::set-output name=is_labeled::$is_labeled"
 
   create-pr:
