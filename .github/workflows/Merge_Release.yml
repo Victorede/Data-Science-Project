@@ -4,10 +4,32 @@ on:
   push:
     branches:
       - pre-prod
+  pull_request:
+    branches:
+      - pre-prod
+    types: [labeled, synchronized]
 
 jobs:
+  check-label:
+    if: github.event_name == 'pull_request' && github.event.action == 'labeled'
+    runs-on: ubuntu-latest
+    outputs:
+      has_label: ${{ steps.label-checker.outputs.has-label }}
+    steps:
+      - name: Check for label
+        id: label-checker
+        run: |
+          if [[ "${{ github.event.label.name }}" == "Deploy to Production" ]]; then
+            echo "::set-output name=has-label::true"
+          else
+            echo "::set-output name=has-label::false"
+          fi
+
   main:
-    name: Create PR Release to Main
+    needs: check-label
+    if: |
+      github.event_name == 'push' && needs.check-label.outputs.has_label != 'false' ||
+      github.event_name == 'pull_request' && github.event.action == 'labeled' && needs.check-label.outputs.has_label == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: git checkout
@@ -15,19 +37,19 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # https://github.com/marketplace/actions/github-pull-request-action
+      # Create Pull Request
       - name: create pull request
         id: open-pr
         uses: repo-sync/pull-request@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'main' # Specify your production branch here
+          destination_branch: 'main'
           pr_title: "[Automated] Merge ${{ github.ref_name }} into main"
           pr_body: "Automated Pull Request"
-          pr_reviewer: "Victorede" # Add more reviewers separated by commas
-          pr_assignee: "Victorede" # Add more assignees separated by commas
+          pr_reviewer: "Victorede"
+          pr_assignee: "Victorede"
 
-      # https://github.com/marketplace/actions/enable-pull-request-automerge
+      # Enable Automerge
       - name: enable automerge
         if: steps.open-pr.outputs.pr_number != ''
         uses: peter-evans/enable-pull-request-automerge@v2
