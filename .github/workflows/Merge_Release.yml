@@ -1,13 +1,27 @@
 name: Merge Release Into Main
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - pre-prod
 
 jobs:
-  main:
-    name: Create PR Release to Main
+  filter:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    outputs:
+      is_labeled: ${{ steps.label-check.outputs.is_labeled }}
+    steps:
+      - name: Check if PR has 'deploy to production' label
+        id: label-check
+        run: |
+          echo "is_labeled=$(echo ${{ join(github.event.pull_request.labels.*.name, ' ') }} | grep -q 'Deploy to Production' && echo 'true' || echo 'false')"
+          echo "::set-output name=is_labeled::$is_labeled"
+
+  create-pr:
+    needs: filter
+    if: needs.filter.outputs.is_labeled == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: git checkout
@@ -15,23 +29,19 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # https://github.com/marketplace/actions/github-pull-request-action
       - name: create pull request
-        id: open-pr
         uses: repo-sync/pull-request@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'main' # Specify your production branch here
+          destination_branch: 'main'
           pr_title: "[Automated] Merge ${{ github.ref_name }} into main"
           pr_body: "Automated Pull Request"
-          pr_reviewer: "Victorede" # Add more reviewers separated by commas
-          pr_assignee: "Victorede" # Add more assignees separated by commas
+          pr_reviewer: "Victorede"
+          pr_assignee: "Victorede"
 
-      # https://github.com/marketplace/actions/enable-pull-request-automerge
       - name: enable automerge
-        if: steps.open-pr.outputs.pr_number != ''
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
+          pull-request-number: ${{ steps.create-pr.outputs.pr_number }}
           merge-method: merge
