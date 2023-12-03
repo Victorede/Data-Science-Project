@@ -1,12 +1,14 @@
+name: Create Release
+
 on:
+  workflow_run:
+    workflows: ["Merge Release Into Main"]
+    branches: [main]
+    types:
+      - completed
   push:
-    branches:
-      - main
-    
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-name: Create Release
 
 jobs:
   build:
