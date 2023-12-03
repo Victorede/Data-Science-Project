@@ -6,10 +6,7 @@ on:
     branches: [main]
     types:
       - completed
-  push:
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
+ 
 jobs:
   build:
     name: Create Release
@@ -47,3 +44,5 @@ jobs:
         with:
           tag_name: ${{ env.NEW_TAG }}
           release_name: Release ${{ env.NEW_TAG }}
+          draft: true
+          body_path: .github/RELEASE_TEMPLATE.md
