@@ -3,10 +3,7 @@
 name: Delete merged branches
 
 on:
-  push:
-    branches:
-      - main
-      
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   delete-merged-branches:
@@ -21,9 +18,13 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
+      - name: Fetch all branches
+        run: git fetch --prune
+
       - name: Delete merged branches
         run: |
-          git fetch --prune
-          for branch in $(git branch --merged | grep -vE '^\*|main|master'); do
+          # Get list of branches merged into main or master
+          for branch in $(git branch -r --merged origin/main | grep -vE '^\*|main|master' | sed 's/origin\///'); do
+            echo "Deleting branch: $branch"
             git push origin --delete $branch
           done
