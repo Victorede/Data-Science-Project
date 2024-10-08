@@ -29,6 +29,17 @@ jobs:
       - name: Identify and delete merged branches
         run: |
           echo "Identifying branches to delete..."
-          # Identify and delete merged branches excluding 'main', 'master', and 'develop'
-          git branch -r --merged | egrep -v "(^\*|master|main|develop)" | sed 's/origin\///' | xargs -n 1 git push origin --delete
+          
+          # List branches merged into origin/main, excluding main, master, and develop
+          branches_to_delete=$(git branch -r --merged | egrep -v "(^\*|master|main|develop)" | sed 's/origin\///')
+          
+          # Check if there are any branches to delete
+          if [ -z "$branches_to_delete" ]; then
+            echo "No merged branches found to delete."
+          else
+            echo "Branches to delete: $branches_to_delete"
+            # Loop through each branch and delete it
+            echo "$branches_to_delete" | xargs -n 1 git push origin --delete
+          fi
+          
           echo "Branch deletion process completed."
