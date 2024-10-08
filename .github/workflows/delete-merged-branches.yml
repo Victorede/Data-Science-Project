@@ -27,7 +27,7 @@ jobs:
           git fetch --prune
           
           # Get a list of remote branches that have been merged into main/master
-          branches_to_delete=$(git branch -r --merged origin/main | grep -vE '^\*|main|master|HEAD' | sed 's/origin\///')
+          branches_to_delete=$(git branch -r --merged main)
           
           # Check if there are any branches to delete
           if [ -z "$branches_to_delete" ]; then
