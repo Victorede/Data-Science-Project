@@ -18,30 +18,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch all branches
-        run: git fetch --prune
-
-      - name: Rebase all local branches with main
+      - name: Fetch all remote branches and prune
         run: |
-          # Get a list of all local branches
-          for branch in $(git branch | grep -vE '^\*|main|master'); do
-            echo "Rebasing $branch with main"
-            git checkout $branch
-            git rebase origin/main || echo "Failed to rebase $branch"
-          done
-          
-      - name: Checkout main branch
-        run: git checkout main
-
-      - name: Fetch latest changes
-        run: git fetch --all --prune
+          git fetch --all --prune
+          git fetch origin +refs/heads/*:refs/remotes/origin/*
 
       - name: Identify and delete merged branches
         run: |
-          # Fetch the latest changes
-          git fetch --prune
-          
-          # Get a list of remote branches that have been merged into main
+          # List remote branches that have been merged into main or master
           branches_to_delete=$(git branch -r --merged origin/main | grep -vE '^\*|main|master|HEAD' | sed 's/origin\///')
           
           # Check if there are any branches to delete
