@@ -3,7 +3,7 @@
 name: Delete merged branches
 
 on:
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   delete-merged-branches:
@@ -12,19 +12,30 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
       - name: Set up Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Fetch all branches
         run: git fetch --prune
 
-      - name: Delete merged branches
+      - name: Identify and delete merged branches
         run: |
-          # Get list of branches merged into main or master
-          for branch in $(git branch -r --merged origin/main | grep -vE '^\*|main|master' | sed 's/origin\///'); do
-            echo "Deleting branch: $branch"
-            git push origin --delete $branch
-          done
+          # Fetch the latest changes
+          git fetch --prune
+          
+          # Get a list of remote branches that have been merged into main/master
+          branches_to_delete=$(git branch -r --merged origin/main | grep -vE '^\*|main|master|HEAD' | sed 's/origin\///')
+          
+          # Check if there are any branches to delete
+          if [ -z "$branches_to_delete" ]; then
+            echo "No merged branches to delete."
+          else
+            # Loop through each merged branch and delete it from the remote
+            for branch in $branches_to_delete; do
+              echo "Deleting branch: $branch"
+              git push origin --delete $branch || echo "Failed to delete $branch"
+            done
+          fi
