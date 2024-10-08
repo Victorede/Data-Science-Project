@@ -20,21 +20,33 @@ jobs:
 
       - name: Fetch all remote branches and prune
         run: |
+          echo "Fetching all branches and pruning..."
           git fetch --all --prune
-          git fetch origin +refs/heads/*:refs/remotes/origin/*
+          git branch -r
+          echo "Branches fetched."
+
+      - name: Checkout main branch
+        run: |
+          echo "Checking out the main branch..."
+          git checkout main
+          echo "On branch: $(git branch --show-current)"
+          git pull origin main
+          echo "Main branch pulled."
+
+      - name: List merged branches (debugging step)
+        run: |
+          echo "Listing remote branches merged into origin/main:"
+          git branch -r --merged origin/main
+          echo "Completed listing."
 
       - name: Identify and delete merged branches
         run: |
-          # List remote branches that have been merged into main or master
-          branches_to_delete=$(git branch -r --merged origin/main | grep -vE '^\*|main|master|HEAD' | sed 's/origin\///')
-          
-          # Check if there are any branches to delete
-          if [ -z "$branches_to_delete" ]; then
-            echo "No merged branches to delete."
-          else
-            # Loop through each merged branch and delete it from the remote
-            for branch in $branches_to_delete; do
-              echo "Deleting branch: $branch"
-              git push origin --delete $branch || echo "Failed to delete $branch"
-            done
-          fi
+          echo "Identifying branches to delete..."
+          # Get a list of remote branches that have been merged into main
+          git branch -r --merged origin/main | grep -vE '^\*|origin/main|origin/master|HEAD' | while read -r branch; do
+            # Extract the branch name (removing the 'origin/' prefix)
+            branch_name=$(echo "$branch" | sed 's/origin\///')
+            echo "Attempting to delete branch: $branch_name"
+            git push origin --delete "$branch_name" || echo "Failed to delete $branch_name"
+          done
+          echo "Branch deletion process completed."
