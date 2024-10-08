@@ -1,0 +1,29 @@
+# .github/workflows/delete-merged-branches.yml
+
+name: Delete merged branches
+
+on:
+  push:
+    branches:
+      - main
+      
+
+jobs:
+  delete-merged-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Delete merged branches
+        run: |
+          git fetch --prune
+          for branch in $(git branch --merged | grep -vE '^\*|main|master'); do
+            git push origin --delete $branch
+          done
