@@ -18,33 +18,25 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch all remote branches and prune
+      - name: Fetch all remote branches
         run: |
-          echo "Fetching all branches and pruning..."
+          echo "Fetching all remote branches..."
           git fetch --all --prune
           git branch -r
-          echo "Branches fetched."
+          echo "Fetched branches: "
+          git branch -r
 
-      - name: Checkout main branch
+      - name: List merged branches
         run: |
-          echo "Checking out the main branch..."
-          git checkout main
-          echo "On branch: $(git branch --show-current)"
-          git pull origin main
-          echo "Main branch pulled."
-
-      - name: List merged branches (debugging step)
-        run: |
-          echo "Listing remote branches merged into origin/main:"
+          echo "Listing remote branches merged into origin/main..."
           git branch -r --merged origin/main
-          echo "Completed listing."
 
       - name: Identify and delete merged branches
         run: |
           echo "Identifying branches to delete..."
-          # Get a list of remote branches that have been merged into main
-          git branch -r --merged origin/main | grep -vE '^\*|origin/main|origin/master|HEAD' | while read -r branch; do
-            # Extract the branch name (removing the 'origin/' prefix)
+          # List all remote branches merged into main, excluding main/master/HEAD
+          git branch -r --merged origin/main | grep -vE 'origin/main|origin/master|HEAD' | while read -r branch; do
+            # Extract branch name (removing 'origin/' prefix)
             branch_name=$(echo "$branch" | sed 's/origin\///')
             echo "Attempting to delete branch: $branch_name"
             git push origin --delete "$branch_name" || echo "Failed to delete $branch_name"
