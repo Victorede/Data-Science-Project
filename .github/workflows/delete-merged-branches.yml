@@ -1,45 +1,44 @@
-# .github/workflows/delete-merged-branches.yml
-
-name: Delete merged branches
+name: Delete Merged and Closed Branches
 
 on:
-  workflow_dispatch:  # Allow manual triggering
+  schedule:
+    - cron: "0 0 * * 0" # Runs every Sunday at midnight
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
-  delete-merged-branches:
+  delete-branches:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
 
-      - name: Fetch all remote branches
-        run: |
-          echo "Fetching all remote branches..."
-          git fetch --all --prune
-          git branch -r
-          echo "Fetched branches: "
-          git branch -r
+      - name: Authenticate with GitHub CLI
+        run: gh auth login --with-token ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Identify and delete merged branches
+      - name: Fetch merged pull requests
         run: |
-          echo "Identifying branches to delete..."
-          
-          # List branches merged into origin/main, excluding main, master, and develop
-          branches_to_delete=$(git branch -r --merged | egrep -v "(^\*|master|main|develop)" | sed 's/origin\///')
-          
-          # Check if there are any branches to delete
-          if [ -z "$branches_to_delete" ]; then
-            echo "No merged branches found to delete."
-          else
-            echo "Branches to delete: $branches_to_delete"
-            # Loop through each branch and delete it
-            echo "$branches_to_delete" | xargs -n 1 git push origin --delete
-          fi
-          
-          echo "Branch deletion process completed."
+          gh pr list --state merged --json headRefName --jq '.[].headRefName' > merged_branches.txt
+
+      - name: Delete merged branches
+        run: |
+          while read branch; do
+            if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
+              git push origin --delete "$branch"
+            fi
+          done < merged_branches.txt
+
+      - name: Fetch closed (stale) pull requests
+        run: |
+          gh pr list --state closed --json headRefName --jq '.[].headRefName' > closed_branches.txt
+
+      - name: Delete closed branches
+        run: |
+          while read branch; do
+            if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
+              git push origin --delete "$branch"
+            fi
+          done < closed_branches.txt
