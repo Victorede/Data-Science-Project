@@ -28,8 +28,8 @@ jobs:
       - name: Delete merged branches
         run: |
           while read branch; do
-            if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
-              git push origin --delete "$branch" || echo "Branch $branch does not exist, skipping"
+            if [ "$branch" != "main" ]; then
+              git push origin --delete "$branch" 2>/dev/null || echo "Branch $branch does not exist, skipping"
             fi
           done < merged_branches.txt
 
@@ -40,7 +40,7 @@ jobs:
       - name: Delete closed branches
         run: |
           while read branch; do
-            if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
-              git push origin --delete "$branch" || echo "Branch $branch does not exist, skipping"
+            if [ "$branch" != "main" ]; then
+              git push origin --delete "$branch" 2>/dev/null || echo "Branch $branch does not exist, skipping"
             fi
           done < closed_branches.txt
