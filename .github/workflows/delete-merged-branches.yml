@@ -8,6 +8,8 @@ on:
 jobs:
   delete-branches:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Defined once here
 
     steps:
       - name: Checkout Repository
@@ -18,33 +20,27 @@ jobs:
 
       - name: Set up GitHub CLI authentication
         run: gh auth setup-git
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch merged pull requests
         run: |
           gh pr list --state merged --json headRefName --jq '.[].headRefName' > merged_branches.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete merged branches
         run: |
           while read branch; do
             if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
-              git push origin --delete "$branch"
+              git push origin --delete "$branch" || echo "Branch $branch does not exist, skipping"
             fi
           done < merged_branches.txt
 
       - name: Fetch closed (stale) pull requests
         run: |
           gh pr list --state closed --json headRefName --jq '.[].headRefName' > closed_branches.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete closed branches
         run: |
           while read branch; do
             if [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
-              git push origin --delete "$branch"
+              git push origin --delete "$branch" || echo "Branch $branch does not exist, skipping"
             fi
           done < closed_branches.txt
