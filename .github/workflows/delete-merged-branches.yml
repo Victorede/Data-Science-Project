@@ -27,6 +27,7 @@ jobs:
 
       - name: Delete merged branches
         run: |
+          set +e  # Disable exit on error
           while read branch; do
             if [ "$branch" != "main" ]; then
               output=$(git push origin --delete "$branch" 2>&1)
@@ -39,6 +40,7 @@ jobs:
               fi
             fi
           done < merged_branches.txt
+          set -e  # Re-enable exit on error
 
       - name: Fetch closed (stale) pull requests
         run: |
@@ -46,6 +48,7 @@ jobs:
 
       - name: Delete closed branches
         run: |
+          set +e  # Disable exit on error
           while read branch; do
             if [ "$branch" != "main" ]; then
               output=$(git push origin --delete "$branch" 2>&1)
@@ -58,3 +61,4 @@ jobs:
               fi
             fi
           done < closed_branches.txt
+          set -e  # Re-enable exit on error
