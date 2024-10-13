@@ -27,11 +27,22 @@ jobs:
 
       - name: Delete merged branches
         run: |
+          error_messages=""
           while read branch; do
             if [ "$branch" != "main" ]; then
-              git push origin --delete "$branch" 2>&1 | grep -v "remote ref does not exist" || echo "Branch $branch does not exist, skipping"
+              output=$(git push origin --delete "$branch" 2>&1)
+              if echo "$output" | grep -q "remote ref does not exist"; then
+                echo "Branch $branch does not exist, skipping"
+              elif echo "$output" | grep -q "failed to push some refs"; then
+                error_messages="$error_messages\n$output"
+              else
+                echo "$output" # Show successful branch deletion message
+              fi
             fi
           done < merged_branches.txt
+          if [ -n "$error_messages" ]; then
+            echo -e "Error(s) encountered during branch deletion:\n$error_messages"
+          fi
 
       - name: Fetch closed (stale) pull requests
         run: |
@@ -39,8 +50,19 @@ jobs:
 
       - name: Delete closed branches
         run: |
+          error_messages=""
           while read branch; do
             if [ "$branch" != "main" ]; then
-              git push origin --delete "$branch" 2>&1 | grep -v "remote ref does not exist" || echo "Branch $branch does not exist, skipping"
+              output=$(git push origin --delete "$branch" 2>&1)
+              if echo "$output" | grep -q "remote ref does not exist"; then
+                echo "Branch $branch does not exist, skipping"
+              elif echo "$output" | grep -q "failed to push some refs"; then
+                error_messages="$error_messages\n$output"
+              else
+                echo "$output" # Show successful branch deletion message
+              fi
             fi
           done < closed_branches.txt
+          if [ -n "$error_messages" ]; then
+            echo -e "Error(s) encountered during branch deletion:\n$error_messages"
+          fi
